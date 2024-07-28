@@ -13,17 +13,18 @@ const props = defineProps({
                 </div>
 
                 <div class="modal-body">
-                    <slot name="body">
-                      
-                    </slot>
-                    <slot name="success">
-                      
-                    </slot>
+                    <slot name="body"> </slot>
+                    <slot name="success"> </slot>
                 </div>
 
                 <div class="modal-footer">
                     <slot name="footer">
-                       
+                        <button
+                            class="modal-default-button"
+                            @click="$emit('close')"
+                        >
+                            OK
+                        </button>
                     </slot>
                 </div>
             </div>

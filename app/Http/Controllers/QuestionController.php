@@ -14,7 +14,7 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        $questions = Question::with('answers')->get();
+         $questions = Question::with('answers')->get();
        return Inertia::render('Questions',[
             'questions'=>$questions
        ]);

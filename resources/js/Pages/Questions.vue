@@ -1,64 +1,78 @@
 <script setup>
 import Layout from "@/Shared/Layout.vue";
 import NewQuestionModal from "@/Shared/NewQuestionModal.vue";
-import {router,usePage} from '@inertiajs/vue3';
-import { ref,computed,defineProps  } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
+import { ref, computed, defineProps } from "vue";
 
-
-const  page = usePage()
-const success = computed(()=>page.props.flash.success)
+const page = usePage();
+const success = computed(() => page.props.flash.success);
 const showNewQuestionModal = ref(false);
 const showViewQuestionModal = ref(false);
 const createdQuestion = ref(null);
 const selectedAnswer = ref(null);
+const selectedEditAnswer = ref(null);
+const selectedQuestion = ref(null);
+const answers = ref(null);
 const newAnswers = ref([]);
-let answerId = 1
+let answerId = 1;
 const props = defineProps({
-    questions:Object,
-    answers:Object
-})
-
-
+    questions: Object,
+    errors: Object,
+});
 
 function createQuestion() {
     showNewQuestionModal.value = true;
 }
 function destroyModal() {
     showNewQuestionModal.value = false;
+    showViewQuestionModal.value = false;
 }
-function addNewAnswer(){
-     const newAnswer = {
-          id:answerId++,
-          answer :'',
-          correct_answer:0
-     }
-     newAnswers.value.push(newAnswer);
+function addNewAnswer() {
+    const newAnswer = {
+        id: answerId++,
+        answer: "",
+        correct_answer: 0,
+    };
+    newAnswers.value.push(newAnswer);
 }
-function handleRadioToggle(id){
-     selectedAnswer.value=id
-     newAnswers.value.forEach(answer => {
-               if(answer.id===id) answer.correct_answer=1
-               else answer.correct_answer=0
-     })
-}
-function submitQuestion() {
-     if(!createdQuestion.value){
-          alert('dasdas')
-          return false;
-     }
-     router.post('/questions',{
-          question:createdQuestion.value,
-          answers:newAnswers.value
-     })
-     router.on('success',() => {
-          createdQuestion.value=null,
-          newAnswers.value=[]
-     })
-}
-function viewQuestion(index) {
-    showViewQuestionModal.value =true
+function handleRadioToggle(id) {
+    selectedAnswer.value = id;
+    newAnswers.value.forEach((answer) => {
+        if (answer.id === id) answer.correct_answer = 1;
+        else answer.correct_answer = 0;
+    });
 }
 
+function handleRadioChange(id) {
+    selectedEditAnswer.value = id;
+    answers.value.forEach((answer) => {
+        if (answer.id === id) answer.correct_answer = 1;
+        else answer.correct_answer = 0;
+    });
+}
+function submitQuestion() {
+    if (!createdQuestion.value) {
+        alert("dasdas");
+        return false;
+    }
+    router.post("/questions", {
+        question: createdQuestion.value,
+        answers: newAnswers.value,
+    });
+    router.on("success", () => {
+        (createdQuestion.value = null), (newAnswers.value = []);
+    });
+}
+function viewQuestion(index) {
+    showViewQuestionModal.value = true;
+    selectedQuestion.value = props.questions[index];
+    answers.value = props.questions[index].answers;
+}
+function updateAnswers(){
+      router.put("/answers", 
+        answers.value
+      );
+}
 </script>
 
 <template>
@@ -75,13 +89,22 @@ function viewQuestion(index) {
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(question,index) in questions">
-                    <td>{{ index +1 }}</td>
+                <tr v-for="(question, index) in questions">
+                    <td>{{ index + 1 }}</td>
                     <td>{{ question.question }}</td>
                     <td>
-                        <button @click="viewQuestion(index)" class="btn btn-primary">View</button>
-                        <button @click="editQuestion" class="btn btn-success">Edit</button>
-                        <button @click="deleteQuestion" class="btn btn-danger">Delete</button>
+                        <button
+                            @click="viewQuestion(index)"
+                            class="btn btn-primary"
+                        >
+                            View
+                        </button>
+                        <button @click="editQuestion" class="btn btn-success">
+                            Edit
+                        </button>
+                        <button @click="deleteQuestion" class="btn btn-danger">
+                            Delete
+                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -90,10 +113,10 @@ function viewQuestion(index) {
     <Teleport to="body">
         <NewQuestionModal :show="showNewQuestionModal" @close="destroyModal">
             <template #header> Thêm mới câu hỏi </template>
-            <template #success> 
-               <div v-if="success" class="alert alert-success">
+            <template #success>
+                <div v-if="success" class="alert alert-success">
                     {{ success }}
-               </div>
+                </div>
             </template>
 
             <template #body>
@@ -117,26 +140,94 @@ function viewQuestion(index) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(answer,index) in newAnswers">
+                        <tr v-for="(answer, index) in newAnswers">
                             <td>1</td>
                             <td>
                                 <input
-                                v-model="answer.answer"
+                                    v-model="answer.answer"
                                     type="text"
                                     class="form-control"
-                                    >
+                                />
                             </td>
                             <td>
-                                <input type="radio" :check="answer.correct_answer===1" class="form-check-input" :value="answer.id"  @change="handleRadioToggle(answer.id)"/>
+                                <input
+                                    type="radio"
+                                    :checked="answer.correct_answer === 1"
+                                    class="form-check-input"
+                                    :value="answer.id"
+                                    @change="handleRadioToggle(answer.id)"
+                                />
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </template>
             <template #footer>
-               <button @click="addNewAnswer" v-if="newAnswers.length<4">Them</button>
-                <button @click="submitQuestion" v-if="newAnswers.length>3" class="btn btn-primary">Create</button>
-                <button @click="destroyModal" class="btn btn-danger">Close</button>
+                <button @click="addNewAnswer" v-if="newAnswers.length < 4">
+                    Them
+                </button>
+                <button
+                    @click="submitQuestion"
+                    v-if="newAnswers.length > 3"
+                    class="btn btn-primary"
+                >
+                    Create
+                </button>
+                <button @click="destroyModal" class="btn btn-danger">
+                    Close
+                </button>
+            </template>
+        </NewQuestionModal>
+
+        <NewQuestionModal :show="showViewQuestionModal" @close="destroyModal">
+            <template #header>
+                <h3>Hiển thị câu hỏi câu trả lời</h3>
+            </template>
+             <template #success>
+                <div v-if="success" class="alert alert-success">
+                    {{ success }}
+                </div>
+            </template>
+            <template #body>
+                <p>
+                    <strong>{{ selectedQuestion.question }}</strong>
+                </p>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <td scope="row">#</td>
+                            <td scope="row">Answer</td>
+                            <td scope="row">Correct</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(answer, index) in answers">
+                            <td>{{ answer.id }}</td>
+                            <td>
+                                <input
+                                    v-model="answer.answer"
+                                    type="text"
+                                    class="form-control"
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="radio"
+                                    :checked="answer.correct_answer === 1"
+                                    class="form-check-input"
+                                    :value="answer.id"
+                                    @change="handleRadioChange(answer.id)"
+                                />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </template>
+            <template #footer>
+                <button  @click="updateAnswers" class="btn btn-primary">Update</button>
+                <button @click="destroyModal" class="btn btn-danger">
+                    Close
+                </button>
             </template>
         </NewQuestionModal>
     </Teleport>
