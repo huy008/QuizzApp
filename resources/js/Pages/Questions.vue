@@ -2,16 +2,22 @@
 import Layout from "@/Shared/Layout.vue";
 import NewQuestionModal from "@/Shared/NewQuestionModal.vue";
 import {router,usePage} from '@inertiajs/vue3';
-import { ref,computed } from "vue";
+import { ref,computed,defineProps  } from "vue";
 
 
 const  page = usePage()
 const success = computed(()=>page.props.flash.success)
 const showNewQuestionModal = ref(false);
+const showViewQuestionModal = ref(false);
 const createdQuestion = ref(null);
 const selectedAnswer = ref(null);
 const newAnswers = ref([]);
 let answerId = 1
+const props = defineProps({
+    questions:Object,
+    answers:Object
+})
+
 
 
 function createQuestion() {
@@ -49,6 +55,10 @@ function submitQuestion() {
           newAnswers.value=[]
      })
 }
+function viewQuestion(index) {
+    showViewQuestionModal.value =true
+}
+
 </script>
 
 <template>
@@ -59,18 +69,20 @@ function submitQuestion() {
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <td scope="row">huy></td>
-                    <td scope="row">>huy</td>
-                    <td scope="row">>huy</td>
-                    <td scope="row">>huy</td>
+                    <td scope="row">#</td>
+                    <td scope="row">Question</td>
+                    <td scope="row">Action</td>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                <tr v-for="(question,index) in questions">
+                    <td>{{ index +1 }}</td>
+                    <td>{{ question.question }}</td>
+                    <td>
+                        <button @click="viewQuestion(index)" class="btn btn-primary">View</button>
+                        <button @click="editQuestion" class="btn btn-success">Edit</button>
+                        <button @click="deleteQuestion" class="btn btn-danger">Delete</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
