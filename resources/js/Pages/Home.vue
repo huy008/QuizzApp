@@ -1,7 +1,9 @@
 <script setup >
-
+  import Layout from '@/Shared/Layout.vue';
 </script>
 
 <template>
-     <h1>Hele</h1>
+     <Layout>
+          <h1>Hele</h1>
+     </Layout>
 </template>

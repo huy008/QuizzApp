@@ -1,7 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Question;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\QuestionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +19,5 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia('Home');
 });
+Route::get('/questions',[QuestionController::class,'index']);
+Route::post('/questions',[QuestionController::class,'store']);
